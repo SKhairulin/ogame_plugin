@@ -1,42 +1,68 @@
 // content.js - Внедряется на все страницы
-
 let isEnabled = false;
+let inAction = false
 
-if (document.URL.endsWith('/game/index.php?page=ingame&component=galaxy')) {
+function AnyDomChangedEvent(state) {  
+  //const {tasks} = state
+  GoToGalaxy('238')
 
-
-    if (document.getElementsByClassName('dropdown currentlySelected expeditionFleetTemplateSelect')[0].childNodes[0].getAttribute('data-value') != '1145') {
-        document.getElementsByClassName('dropdown currentlySelected expeditionFleetTemplateSelect')[0].childNodes[0].click()
-        const rel = document.getElementsByClassName('dropdown currentlySelected expeditionFleetTemplateSelect')[0].childNodes[0].getAttribute('rel')
-        if (!!rel) {            
-            document.getElementById(rel).childNodes[1].childNodes[0].click()
-        }
-    } 
-    let i = 1
-    const callback = () => {
-        //i++
-        //console.log('call')
-        const MAX_EXPO = 8
-
-        if (Array.from(document.getElementById('eventContent')?.
-            getElementsByClassName('eventFleet') || [])?.filter(e=>e.cells[0].innerText?.includes('готов')).length > 0)
-            location.reload()
-                //.map(e=>e?.closest('tr'))?.forEach(e=>e?.remove())
-
-        if (document.getElementsByClassName('dropdown currentlySelected expeditionFleetTemplateSelect')[0].childNodes[0].getAttribute('data-value') != '1145') return;
-
-        if (Array.from(document.getElementById('eventContent')?.
-            getElementsByClassName('eventFleet') || [])?.
-            map(e=>e.cells[2].childNodes[1].getAttribute('data-tooltip-title'))?.
-            filter(e=>e.includes('Экспедиция (В)')).length < MAX_EXPO) {
-                
-          //       console.log('send')
-                 document.getElementById('sendExpeditionFleetTemplateFleet').click()
-        }
-        if (i > 10)  { /*location.reload();*/ i = 1}
-    }
-    setInterval(callback,3000)
+  GalaxyAutoExpo()
+  
+  //chrome.storage.local.set({state: {tasks}})
 }
+
+function GoToGalaxy(num){
+  if (!document.URL.includes('/game/index.php?page=ingame&component=galaxy')) return
+  const system_input = document.getElementById('system_input')
+  if (!!system_input) {
+    if (system_input.value != num){ 
+      system_input.value = num
+      const btn = document.getElementById('galaxyHeader')?.getElementsByClassName('btn_blue')?.[0]
+      btn?.click()
+    }
+  }
+
+}
+
+
+function GalaxyAutoExpo() {
+  const MAX_EXPO = 8
+  if (!document.URL.includes('/game/index.php?page=ingame&component=galaxy')) return
+
+  const cbItem = document.getElementsByClassName('dropdown currentlySelected expeditionFleetTemplateSelect')?.[0]?.childNodes?.[0]
+  const data1145 = cbItem?.getAttribute('data-value')
+
+  if ( data1145 != '1145') {
+      cbItem?.click()
+      
+      setTimeout(()=>{
+        const rel = cbItem?.getAttribute('rel')                    
+        if (!!rel ) {            
+            document.getElementById(rel)?.childNodes?.[1]?.childNodes?.[0]?.click()
+        }
+  
+      },500)
+  } 
+
+
+
+  if (Array.from(document.getElementById('eventContent')?.
+      getElementsByClassName('eventFleet') || [])?.filter(e=>e.cells[0].innerText?.includes('готов')).length > 0)
+      location.reload()
+          //.map(e=>e?.closest('tr'))?.forEach(e=>e?.remove())
+
+  if (data1145 != '1145') return;
+   
+  if  ((data1145 == '1145')
+        && (Array.from(document.getElementById('eventContent')?.
+      getElementsByClassName('eventFleet') || [])?.
+      map(e=>e.cells[2].childNodes[1].getAttribute('data-tooltip-title'))?.
+      filter(e=>e.includes('Экспедиция (В)')).length || MAX_EXPO) < MAX_EXPO) {
+            document.getElementById('sendExpeditionFleetTemplateFleet').click()
+  }
+   
+}
+
 
 
 
@@ -97,20 +123,7 @@ function interactWithMain() {
 
 // Функция для отключения/очистки изменений
 function disableFeatures() {
-  // Возвращаем стили обратно
-  const mainElement = document.getElementById('main');
-  if (mainElement) {
-    mainElement.style.boxShadow = '';
-    mainElement.classList.remove('my-extension-enhanced');
-    mainElement.dataset.extensionActive = 'false';
-  }
-  
-  // Удаляем добавленную кнопку
-  const button = document.getElementById('myExtensionButton');
-  if (button) {
-    button.remove();
-  }
-  
+
   console.log('Функции расширения отключены');
 }
 
@@ -157,23 +170,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Наблюдаем за изменениями DOM на случай, если #main появится позже
 const observer = new MutationObserver((mutations) => {
-  if (isEnabled && !document.getElementById('main')) {
-    return;
-  }
-  
-  if (isEnabled && document.getElementById('main')) {
-    interactWithMain();
-  }
+  if (!isEnabled) return;
+  AnyDomChangedEvent()
+  //chrome.storage.local.get('state', AnyDomChangedEvent)
 });
 
 // Запускаем наблюдение после загрузки страницы
-if (document.readyState === 'complete') {
-    console.log('lookup')
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOC LOADED!')
-    //observer.observe(document.body, { childList: true, subtree: true });
-     //IN GALAXY
-
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {    
+    observer.observe(document.body, { childList: true, subtree: true });
   });
 } else {
   observer.observe(document.body, { childList: true, subtree: true });

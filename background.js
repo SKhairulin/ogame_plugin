@@ -15,6 +15,19 @@ chrome.runtime.onInstalled.addListener(() => {
       });
       return true; // Для асинхронного ответа
     }
+
+    if (message.action === 'getState') {      
+      chrome.storage.local.get(['state'], function(result) {
+        sendResponse(result);
+      });            
+      return true
+    }
+
+    if (message.action === 'postState') {
+      
+      return true
+    }    
+
   });
   
   // При обновлении вкладки можем проверить состояние

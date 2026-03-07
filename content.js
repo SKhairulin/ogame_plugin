@@ -1,10 +1,40 @@
 // content.js - Внедряется на все страницы
 let isEnabled = false;
-let inAction = false
+let inAction = false;
+
+
+
+function getRandomInt(min, max) {  
+  mn = Math.ceil(min)*1000; // округляем до ближайшего большего целого  
+  mx = Math.floor(max)*1000; // округляем до ближайшего меньшего целого  
+  return Math.floor(Math.random() * (mx - mn + 1)) + mn; // генерируем случайное целое число  
+} 
+
+const refreshPage = ()=> {
+  setTimeout(()=>{
+    if (!inAction)
+      location.reload()
+    else
+      refreshPage()
+    
+  }, getRandomInt(3*60, 6*60))
+}
+
+refreshPage()
+
+
+const Actions = {
+ //SendExpo
+}
+
 
 function AnyDomChangedEvent(state) {  
   //const {tasks} = state
-  GoToGalaxy('238')
+
+  
+
+  GoToGalaxy('237')
+  
 
   GalaxyAutoExpo()
   
@@ -26,7 +56,7 @@ function GoToGalaxy(num){
 
 
 function GalaxyAutoExpo() {
-  const MAX_EXPO = 8
+  const MAX_EXPO = 12
   if (!document.URL.includes('/game/index.php?page=ingame&component=galaxy')) return
 
   const cbItem = document.getElementsByClassName('dropdown currentlySelected expeditionFleetTemplateSelect')?.[0]?.childNodes?.[0]
@@ -46,9 +76,12 @@ function GalaxyAutoExpo() {
 
 
 
-  if (Array.from(document.getElementById('eventContent')?.
-      getElementsByClassName('eventFleet') || [])?.filter(e=>e.cells[0].innerText?.includes('готов')).length > 0)
-      location.reload()
+  Array.from(document.getElementById('eventContent')?.
+      getElementsByClassName('eventFleet') || []).
+      filter(e=>e.cells[0].innerText?.includes('готов')).
+      map(e=>e?.closest('tr'))?.
+      forEach(e=>e?.remove())
+      
           //.map(e=>e?.closest('tr'))?.forEach(e=>e?.remove())
 
   if (data1145 != '1145') return;

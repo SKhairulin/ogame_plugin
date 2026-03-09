@@ -2,6 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     const toggleSwitch = document.getElementById('mainToggle');
+    const runScan = document.getElementById('runScan');
     const statusText = document.getElementById('status');
     const urlInfo = document.getElementById('currentUrl');
     const applyButton = document.getElementById('applyNow');
@@ -19,6 +20,16 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
     
+    runScan.addEventListener('change', ()=>{
+      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: 'runScan',
+          enabled: runScan.checked
+        }).catch(() => {
+          // Игнорируем ошибки, если content script еще не загружен
+        });
+      });
+    })
     // Обработчик переключения
     toggleSwitch.addEventListener('change', function() {
       const isEnabled = toggleSwitch.checked;
